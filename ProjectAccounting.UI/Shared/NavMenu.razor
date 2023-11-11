@@ -1,0 +1,212 @@
+﻿@using ProjectAccounting.Models;
+@using ProjectAccounting.Models.Models;
+@inject Blazored.SessionStorage.ISessionStorageService session
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">ProjectAccounting.UI</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+    @*    <div class="nav-item px-3">
+            <NavLink class="nav-link" href="counter">
+                <span class="oi oi-plus" aria-hidden="true"></span> Counter
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="fetchdata">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
+            </NavLink>
+        </div>*@
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="ClientInfoList">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Client List
+            </NavLink>
+        </div>
+      @*  <div class="nav-item px-3">
+            <NavLink class="nav-link" href="SupplierInfo">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> SupplierInfo
+            </NavLink>
+        </div>*@
+        @if (IsLogin == true)
+        {
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="SupplierList">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Supplier list
+            </NavLink>
+        </div>
+        }
+      @*  <div class="nav-item px-3">
+            <NavLink class="nav-link" href="BillingInfo">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Billing Info
+            </NavLink>
+        </div>*@
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="BillingInfoList">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Billing List
+            </NavLink>
+        </div>
+     @*   <div class="nav-item px-3">
+            <NavLink class="nav-link" href="RefundInfo">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Refund Info
+            </NavLink>
+        </div>*@
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="RefundInfolist">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Refund list
+            </NavLink>
+        </div>
+      @*  <div class="nav-item px-3">
+            <NavLink class="nav-link" href="RevenueInfo">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Revenue Info
+            </NavLink>
+        </div>*@
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="RevenueInfoList">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Revenue List
+            </NavLink>
+        </div>
+       
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="SalesList">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Sales List
+            </NavLink>
+        </div>
+        @*<div class="nav-item px-3">
+            <NavLink class="nav-link" href="SalesOrderList">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>SalesOrder
+            </NavLink>
+        </div>*@
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="PurchaseOrderList">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Purchase List
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="EmployeInfo">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Employee Info
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="CompanyInfo">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Company Info
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="UserInfos">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>UserInfo List
+            </NavLink>
+        </div>
+   
+       @* <div class="nav-item px-3">
+            <NavLink class="nav-link" href="CashExpence">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Cash Expence
+            </NavLink>
+        </div>*@
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="CashList">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Cash List
+            </NavLink>
+        </div>
+       @* <div class="nav-item px-3">
+            <NavLink class="nav-link" href="SupplierExpence">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Supplier Expence
+            </NavLink>
+        </div>*@
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="SupplierExpenceList">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Supplier List
+            </NavLink>
+        </div>
+      @*  <div class="nav-item px-3">
+            <NavLink class="nav-link" href="OfficeExpence">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Office Expence
+            </NavLink>
+        </div>*@
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="OfficeExpenceList">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Office List
+            </NavLink>
+        </div>
+      @*  <div class="nav-item px-3">
+            <NavLink class="nav-link" href="MasterDetails">
+                <span class="oi oi-list-rich" aria-hidden="true"></span>Master Details
+            </NavLink>
+        </div>*@
+        <div class="nav-item px-3">
+        
+            <NavLink class="nav-link" Match="NavLinkMatch.All">
+                <span class="oi oi-power-standby" aria-hidden="true"></span>Logout
+            </NavLink>
+        
+        </div>
+        
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private bool IsLogin = false;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    public TblUser user = new TblUser();
+    protected override async Task OnInitializedAsync()
+    {
+
+        await GetSessionUser();
+        //await GetUsers();
+        //if (Id != null)
+        //{
+        //  //  await GetUserInfosById(Id);
+        //}
+
+        //else
+        //{
+        //    //UpdatedisableState = true; SavedisableState = false;
+
+        //}
+
+        //SessionPurchaseNo = await olcalStorage.GetItemAsync<string>("purchaseOrderno");
+        //SavedisableState = true; UpdatedisableState = false;
+
+        //await GetUserRoles();
+        //Dt = DateTime.Now;
+
+        //expense.IsCashCheque = false;
+        //expense.IsDueAdvance = false;
+        //expense.ChequeCleared = false;
+        //expense.IsFinalPayment = false;
+        //expense.IsOnlineBanking = false;
+
+        //expense.ReceiveDate = DateTime.Now;
+        //expense.ChequeDate = DateTime.Now;
+        //expense.SupplierBillDate = DateTime.Now;
+        //await GetBankAccountOwner();
+        //await GetOfficeHead();
+        //await GetEmployee();
+
+        this.StateHasChanged();
+
+
+    }
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu; 
+    }
+    public async Task GetSessionUser()
+    {
+        user = await session.GetItemAsync<TblUser>("sessionUser");
+
+    }
+}

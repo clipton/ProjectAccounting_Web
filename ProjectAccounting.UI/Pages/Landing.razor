@@ -1,0 +1,101 @@
+﻿@page "/Landing"
+@using ProjectAccounting.Models.CustomModels;
+@using ProjectAccounting.Models;
+@using ProjectAccounting.Models.Models;
+@using ProjectAccounting.UI.Services;
+@using Syncfusion.Blazor.DropDowns;
+@inject IEmployeeService empService;
+@inject IJSRuntime JSRuntime;
+
+<PageTitle>Index</PageTitle>
+
+<div class="container">
+
+</div>
+ 
+
+@code{
+    /*
+    private TblEmployee employee = new TblEmployee();
+    //private  emp = new tblEmployee();
+    private List<TblEmployee> emplist = new List<TblEmployee>();
+    protected override async Task OnInitializedAsync()
+    {
+        await GetEmployee();   
+    }
+    private async Task GetEmployee()
+    {
+        emplist = await empService.GetEmployees();
+    }
+    public async void AddNewEmployee()
+    {
+        var response = await empService.AddNewEmployee(employee);
+        if (response != null)
+        {
+            await GetEmployee();
+            await Alert("Em[ployee Added Successfully");
+        }
+    }
+    public async void UpdateEmployee(TblEmployee employee)
+    {
+        var response = await empService.UpdateEmployee(employee);
+        if (response != null)
+        {
+            await GetEmployee();
+            await Alert("Em[ployee Update Successfully");
+        }
+    } 
+    public async void DeleteEmployee(int EmployeeId)
+    {
+        var response = await empService.DeleteEmployee(EmployeeId);
+        if (response != null)
+        {
+            await GetEmployee();
+            await Alert("Em[ployee Delete Successfully");
+        }
+    }
+    private async Task Alert(string Message)
+    {
+        await JSRuntime.InvokeAsync<object>("Alert", Message);
+    }
+    
+   public class GameFields
+    {
+        public string ID { get; set; }
+        public string Text { get; set; }
+    }
+    private List<GameFields> Games = new List<GameFields>()
+    {
+        new GameFields(){ ID= "Game1", Text= "American Football" },
+        new GameFields(){ ID= "Game2", Text= "Badminton" },
+        new GameFields(){ ID= "Game3", Text= "Basketball" },
+        new GameFields(){ ID= "Game4", Text= "Cricket" },
+        new GameFields(){ ID= "Game5", Text= "Football" },
+        new GameFields(){ ID= "Game6", Text= "Golf" },
+        new GameFields(){ ID= "Game7", Text= "Hockey" },
+        new GameFields(){ ID= "Game8", Text= "Rugby"},
+        new GameFields(){ ID= "Game9", Text= "Snooker" },
+        new GameFields(){ ID= "Game10", Text= "Tennis"}
+     };
+    public string DropDownValue = "Game3";
+    public string ChangeValue { get; set; } = "Basketball";
+    public void OnChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, GameFields> args)
+    {
+        this.ChangeValue = args.ItemData.Text;
+    }
+    //protected async void CountryClicked(ChangeEventArgs countryEvent)
+    //{
+    //    //emplist.Clear();
+    //    //cityName = string.Empty;
+    //    //countryId = countryEvent.Value.ToString();
+    //    //countryName = emplist.FirstOrDefault(s => s.CountryId == countryId).CountryName;
+    //    //emplist = await Http.GetJsonAsync<List<Cities>>("api/Countries/GetCities/" + countryId);
+    //    this.StateHasChanged();
+    //}
+    protected async void CityClicked(ChangeEventArgs cityEvent)
+    {
+        string cityName = cityEvent.Value.ToString();
+        this.StateHasChanged();
+    }
+    */
+}

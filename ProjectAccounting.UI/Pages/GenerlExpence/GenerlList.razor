@@ -1,0 +1,91 @@
+﻿@page "/GenerlList"
+@using ProjectAccounting.Models.CustomModels;
+@using ProjectAccounting.Models.Models;
+@using ProjectAccounting.UI.Services;
+@using Syncfusion.Blazor.DropDowns;
+@inject IExpenceService empService;
+@inject IJSRuntime JSRuntime;
+@*<PageTitle>Counter</PageTitle>*@
+<h1>Expense List</h1>
+
+<NavLink class="nav-link" href="CashExpence">
+                    Add New
+</NavLink>
+<div class="container fs-6">
+<form class="row g-3">
+        <table class="table table-striped table-bordered bg-light">
+            <thead>
+                <tr>
+                    <th>
+                        Sales OrderNo
+                    </th>
+
+                    <th>
+                       Cash Purchase No
+                    </th>
+                    
+                    <th>
+                        Purchase Order NO
+                    </th>
+                    <th>
+                        Bill Date
+                    </th>
+                    <th>
+                        Amount
+                    </th>
+                    <th>
+                        Receive Date
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @*@foreach (var (index, emp) in emplist.Select((prod,i)=> (i+1,emp)))*@
+                @foreach (var usr in userlist)
+                {
+                    <tr>
+                        <td>@usr.SalesOrderNo</td>
+                        <td>@usr.AdvancePurchaseNo</td>
+                        <td>@usr.PurchaseOrderNo</td>
+                        <td>@usr.SupplierBillDate</td>
+                        <td>@usr.Amount</td>
+                        <td>@usr.ReceiveDate</td>
+                       <td>
+                           @* <input type="button" class="btn btn-primary" value="Update" @onclick="(()=>UpdateEmployee(emp))" />*@
+                            <a href="CashExpence/@usr.Id">
+                                 Select
+                            </a>
+                        </td>
+                        @* <input type="button" class="btn btn-primary" value="Update" @onclick="(()=>UpdateEmployee(emp))" />*@
+                        @*<td>
+                           
+                            <a href="UserInfo/@usr.Id">
+                                Delete
+                            </a>
+                        </td>*@
+                       
+                       @* <input type="button" class="btn btn-primary" value="Delete" @onclick="(()=>DeleteEmployee(emp.EmpId))" />*@
+                    </tr>
+                }
+            </tbody>
+        </table>
+</form>
+</div>
+@code {
+    //private int currentCount = 0;
+
+    //private void IncrementCount()
+    //{
+    //    currentCount++;
+    //}
+    private TblExpense User = new TblExpense();
+    private List<TblExpense> userlist = new List<TblExpense>();
+    protected override async Task OnInitializedAsync()
+    {
+        await GetUsers();
+    }
+    private async Task GetUsers()
+    {
+        userlist = await empService.GetExpense();
+    }
+  
+}

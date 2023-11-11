@@ -1,0 +1,127 @@
+﻿@page "/PurchaseOrderList"
+@using ProjectAccounting.Models.CustomModels;
+@using ProjectAccounting.Models.Models;
+@using ProjectAccounting.UI.Services;
+@using Syncfusion.Blazor.DropDowns;
+@inject IPurchaseService empService;
+@inject IJSRuntime JSRuntime;
+@*<PageTitle>Counter</PageTitle>*@
+<h4>Purchase List</h4>
+
+<NavLink class="nav-link" href="PurchaseInfo">
+    Add New
+</NavLink>
+<div class="container fs-6">
+<form class="row g-3">
+        <div class="col-md-6">
+            <label class="col-form-label-sm">Search</label>
+            <select class="form-select-sm " id="search">
+                <option value="Option1" selected>SalesOrderNo</option>
+                <option value="Option2">PurchaseOrderNo</option>
+                <option value="Option3">Client Name</option>
+                <option value="Option3">Supplier Name</option>
+            </select>
+
+        </div>
+        <div class="col-md-6">
+          <input width="100%" type="text"/>
+
+        </div>
+        <div class="col-md-8">
+          
+
+        </div>
+     @*   <select class="form-select" value="@expense.BankAccountId" bind="@expense.BankAccountId">
+            @if (AccountNamelist != null)
+            {
+                @foreach (var cln in AccountNamelist)
+                {
+                    <option value="@cln.Id">@cln.AccountName</option>
+                }
+            }
+        </select>*@
+        <table class="table table-striped table-bordered bg-light">
+          
+            <thead>
+                <tr>
+                    <th>
+                        Purchase Order No
+                    </th>
+
+                    <th>
+                        Sales Order No
+                    </th>
+                    
+                    <th>
+                        Client Name
+                    </th>
+
+                    <th>-
+                        Item Descrition
+                    </th>
+                    
+                    <th>
+                        ProjectName
+                    </th>
+                    <th>
+                        AppWorkValue
+                    </th>
+                    <th>
+                        Amount
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @*@foreach (var (index, emp) in emplist.Select((prod,i)=> (i+1,emp)))*@
+                @foreach (var usr in userlist)
+                {
+                    <tr>
+                        <td>@usr.PurchaseOrderNo</td>
+                        <td>@usr.SalesOrderNo</td>
+                        <td>@usr.ClientName</td>
+                        <td>@usr.ItemDescrition</td>
+                        <td>@usr.ProjectName</td>
+                        <td>@usr.AppWorkValue</td>
+                        <td>@usr.Amount</td>
+                       
+                       <td>
+                           @* <input type="button" class="btn btn-primary" value="Update" @onclick="(()=>UpdateEmployee(emp))" />*@
+                            <a href="PurchaseInfo/@usr.Id">
+                                 Select
+                            </a>
+                        </td>
+                        @* <input type="button" class="btn btn-primary" value="Update" @onclick="(()=>UpdateEmployee(emp))" />*@
+                        @*<td>
+                           
+                            <a href="UserInfo/@usr.Id">
+                                Delete
+                            </a>
+                        </td>*@
+                       
+                       @* <input type="button" class="btn btn-primary" value="Delete" @onclick="(()=>DeleteEmployee(emp.EmpId))" />*@
+                    </tr>
+                }
+            </tbody>
+        </table>
+</form>
+</div>
+@code {
+    //private int currentCount = 0;
+
+    //private void IncrementCount()
+    //{
+    //    currentCount++;
+    //}
+    private TblPurchaseOrder User = new TblPurchaseOrder();
+    //private List<TblPurchaseOrder> userlist = new List<TblPurchaseOrder>();
+    private List<VwPurchaseinfo> userlist = new List<VwPurchaseinfo>();
+    protected override async Task OnInitializedAsync()
+    {
+        await GetUsers();
+    }
+    private async Task GetUsers()
+    {
+        userlist = await empService.GetvwPurchases();
+    }
+  
+}

@@ -1,0 +1,230 @@
+﻿@page "/RefundInfo/{Id}"
+@page "/RefundInfo"
+@using ProjectAccounting.Models.CustomModels;
+@using ProjectAccounting.Models.Models;
+@using ProjectAccounting.UI.Services;
+@inject NavigationManager NavigationManager
+@inject IRefundService RefundService;
+@inject IUserService UserService;
+@inject IEmployeeService EmployeeService;
+@inject ICommonService CommonService
+@inject ISalesService SaleService
+@inject IUserRoleService UserRoleService
+@inject IPurchaseService PurchaseService
+@inject IJSRuntime JSRuntime;
+@*<PageTitle>Sales Order Info</PageTitle>*@
+<h4>Refund Info</h4>
+<div class="container fs-6">
+    <EditForm class="row g-3" Model="@refund">
+    <div class="col-md-12">
+    <div class="col-md-12">
+            <label for="inputAddress" class="form-label-Bold">Refund from</label>
+                <select class="form-select" value="@refund.PersonId" bind="@refund.PersonId" @onchange="person_Onchange">
+                    @if (employeelist != null)
+                {
+                        @foreach (var cln in employeelist)
+                    {
+                        <option value="@cln.Id">@cln.EmployeeName</option>
+                    }
+                }
+            </select>
+    </div>
+        </div>
+     <div class="col-6">
+        <label for="inputPassword4" class="form-label">Sales Order NO</label>
+            <InputText @bind-Value="refund.SalesOrderNo" @oninput="GetSalesInfo" class="form-control" />
+    </div>
+    <div class="col-6">
+        <label for="inputAddress" class="form-label">Voucher NO</label>
+            <InputText @bind-Value="refund.VoucherNumber" class="form-control" />
+    </div>
+    <div class="col-12">
+    <div class="col-6">
+        <label for="inputAddress2" class="form-label">Project Info</label>
+         <InputTextArea @bind-Value="objSale.PlaceofWork" class="form-control" />
+    </div>
+    </div>
+    <div class="col-md-6">
+        <label for="inputCity" class="form-label">Cash Purchase No</label>
+            <InputText @bind-Value="refund.PurchaseNo" @oninput="GetpurchaseInfo" class="form-control" />
+    </div>
+    <div class="col-md-6">
+            <label for="inputCity" class="form-label">Bill Amount</label>
+            <InputNumber @bind-Value="refund.BillAmount" class="form-control" />
+    </div>
+    <div class="col-md-12">
+        <label for="inputCity" class="form-label">Purchase Info </label>
+            <InputTextArea @bind-Value="objPurchase.ItemDescrition" class="form-control" />
+    </div>
+        <div class="col-md-2">
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+            <label class="form-check-label" for="flexCheckDefault">
+                Cash
+            </label>
+        </div>
+        <div class="col-md-2">
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+            <label class="form-check-label" for="flexCheckDefault">
+                Submit
+            </label>
+        </div>
+        <div class="col-md-2">
+            <label for="inputCity" class="form-label">Receive Date </label>
+            <InputDate @bind-Value="refund.ReceiveDate" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label for="inputCity" class="form-label">Refund Amount </label>
+            <InputNumber @bind-Value="refund.RefundAmount" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label for="inputCity" class="form-label">Balance </label>
+            <InputNumber @bind-Value="refund.BalanceAmount" class="form-control" />
+        </div>
+        <div class="col-12">
+            <input type="button" class="btn btn-primary" value="Save" @onclick="(()=> AddNew(refund))">Save</input>
+            <input type="button" class="btn btn-success" value="Update" @onclick="(()=> Update(refund))">Update</input>
+            <input type="button" class="btn btn-danger" value="Delete" @onclick="(()=> Delete(refund))">Delete</input>
+            <button type="button" class="btn btn-secondary">Close</button>
+        </div>
+    </EditForm>
+</div>
+@code {
+    private int currentCount = 0;
+    [Parameter]
+    public string? Id { get; set; }
+    public TblUser User = new TblUser();
+    public TblRefundExpense refund = new TblRefundExpense();
+    private List<TblEmployee> employeelist = new List<TblEmployee>();
+    public TblSaleOrder objSale = new TblSaleOrder();
+    public TblPurchaseOrder objPurchase = new TblPurchaseOrder();
+    private DateTime StartDt;
+    private DateTime Closedt;
+    private DateTime Completetiondt;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+
+        if (Id != null)
+        {
+            await GetRefundById(Id);
+        }
+        else
+        {
+            StartDt = DateTime.Now;
+            Closedt = DateTime.Now;
+            Completetiondt = DateTime.Now;
+            refund.ReceiveDate = DateTime.Now;
+
+        }
+        await GetEmployee();
+        this.StateHasChanged();
+
+    }
+
+    private async Task GetUserInfosById(string Id)
+    {
+        int ID;
+        ID = Convert.ToInt32(Id);
+        User = await UserService.GetUserInfosById(ID);
+        this.StateHasChanged();
+    }
+    private async Task GetRefundById(string Id)
+    {
+        int ID;
+        ID = Convert.ToInt32(Id);
+        refund = await RefundService.GetRefundById(ID);
+
+        this.StateHasChanged();
+    }
+    public async void AddNew(TblRefundExpense RefundExpense)
+    {
+        var response = await RefundService.AddNewRefund(RefundExpense);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Refund Added Successfully");
+        }
+    }
+    public async void Update(TblRefundExpense RefundExpense)
+    {
+        var response = await RefundService.UpdateRefund(RefundExpense);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Refund Update Successfully");
+        }
+    }
+    public async void Delete(TblRefundExpense RefundExpense)
+    {
+        //int UserId = Convert.ToInt32(User.Id);
+        var response = await RefundService.DeleteRefund(RefundExpense);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Refund Delete Successfully");
+        }
+
+    }
+    private async Task GetEmployee()
+    {
+        TblEmployee objRole = new TblEmployee();
+        objRole.Id = 0;
+        objRole.EmployeeName = "Select Employee Name";
+
+        employeelist = await EmployeeService.GetEmployees();
+        employeelist.Add(objRole);
+        employeelist.Reverse();
+    }
+    protected async void person_Onchange(ChangeEventArgs evt)
+    {
+        //string cityName = evt.Value.ToString();
+        refund.PersonId = Convert.ToInt32(evt.Value);
+        this.StateHasChanged();
+    }
+    private async Task GetSaleCode()
+    {
+        string SalesCode = "SalesOrderNo";
+        sp_GetPatternConfig obj = await CommonService.GetCodeByCode(SalesCode);
+        //Sale.SalesOrderNo = obj.VoucherNumber;
+        //string ss = obj.ToString();
+    }
+    protected async void GetSalesInfo(ChangeEventArgs evt)
+    {
+
+        string SaleOrderNo = evt.Value.ToString();
+        //expense.SalesOrderNo = SaleOrderNo;
+        //objSale.SalesOrderNo = SaleOrderNo;
+        objSale = await SaleService.GetSalesBySalesCode(SaleOrderNo);
+        refund.SalesOrderId = objSale.Id;
+        string PlaceofWork = objSale.PlaceofWork;
+        this.StateHasChanged();
+
+    }
+    protected async void GetpurchaseInfo(ChangeEventArgs evt)
+    {
+        //if ()
+        //string PurchaseOrderNo = evt.Value.ToString();
+        //SessionPurchaseNo = evt.Value.ToString();
+        //expense.PurchaseOrderNo = PurchaseOrderNo;
+
+        //await olcalStorage.SetItemAsync("purchaseOrderno", SessionPurchaseNo);
+        string CashPurchaseNo = evt.Value.ToString();
+        objPurchase = await PurchaseService.GetpurchaseByCode(CashPurchaseNo);
+        string ItemDescrition = Convert.ToString(objPurchase.ItemDescrition);
+        //string ItemDescrition = objPurchase.ItemDescrition;
+        this.StateHasChanged();
+
+    }
+    private async Task Alert(string Message)
+    {
+        await JSRuntime.InvokeAsync<object>("Alert", Message);
+        NavigationManager.NavigateTo("RefundInfolist");
+    }
+}

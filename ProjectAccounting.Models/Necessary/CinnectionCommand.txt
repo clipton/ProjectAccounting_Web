@@ -1,0 +1,6 @@
+﻿
+
+/// SCAFODING
+Scaffold-DbContext "Server=HRVENTURE;Database=ProjectAccounting;User ID=sa;Password=Sa@1234;Trusted_Connection=True;
+TrustServerCertificate=True;"Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models
+

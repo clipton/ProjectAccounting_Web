@@ -1,0 +1,238 @@
+﻿@page "/Indexx"
+@using ProjectAccounting.Models.CustomModels;
+@using ProjectAccounting.Models;
+@using ProjectAccounting.Models.Models;
+@using ProjectAccounting.UI.Services;
+@using Syncfusion.Blazor.DropDowns;
+@inject IEmployeeService empService;
+@inject IJSRuntime JSRuntime;
+
+<PageTitle>Index</PageTitle>
+
+<div class="container">
+    <EditForm Model="@employee">
+        <table class="tablet table-striped table-bordered bg-light">
+            <tr>
+                <td>F Name</td>
+                <td>L name </td>
+                <td>Phone</td>
+            </tr>
+            <tr>
+                <td>
+                    <InputText @bind-Value="employee.EmployeeCode" class="form-control" />
+                </td>
+                <td>
+                    <InputText @bind-Value="employee.EmployeeName" class="form-control" />
+                </td>
+                <td>
+                    <InputText @bind-Value="employee.Designation" class="form-control" />
+                </td>
+                <td>
+                    <input type="button" class="btn btn-primary" value="Add" @onclick="AddNewEmployee" />
+                </td>
+              
+                
+            </tr>
+        </table>
+        @* <input type="submit" value="Submit" asp-page-handler="Submit"/>
+ 
+        <script type="text/javascript">
+            $(function () {
+                $('#txtSelectedDate').datepicker({
+                    changeMonth: true,
+                    changeYear: true,
+                    format: "dd/mm/yyyy",
+                    language: "tr"
+                });
+            });
+        </script>*@
+    </EditForm>
+    <div class="row" style="padding-top:10px">
+    @*<DateTimePicker DropDownPosition="DropDownPosition.Bottom" CalendarButton="true" FormatString="yyyy MMM ddd HH:mm" Value="defaultValue" ImportantDates="importantDates" ImportantDatesTemplate="template"></DateTimePicker>*@
+    </div>
+    <div class="row" style="padding-top:10px">
+      @*  <div class="col-md-4">
+            <select class="form-control" @onchange="CityClicked">
+                <option value="">-- Select Country --</option>
+                @foreach (var country in emplist)
+                {
+                    <option value="@country.EmpId">@country.FirstName</option>
+                }
+            </select>
+        </div>*@
+        <div class="col-sm-4">
+            <select class="form-control" @onchange="CityClicked">
+                <option value="">-- Select City --</option>
+                @if (emplist != null)
+                {
+                    @foreach (var city in emplist)
+                    {
+                        <option value="@city.Id">@city.EmployeeName</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+    <table class="table table-striped table-bordered bg-light">
+        <thead>
+            <tr>
+                <th>
+                    Fi
+                </th>
+                <th>
+                    La
+                </th>
+                <th>
+                    Ph
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @*@foreach (var (index, emp) in emplist.Select((prod,i)=> (i+1,emp)))*@
+            @foreach (var emp in emplist)
+            {
+                <tr>
+                    <td>@emp.EmployeeCode</td>
+                    <td>@emp.EmployeeName</td>
+                    <td>@emp.Designation</td>
+                    <td>
+                        <input type="button" class="btn btn-primary" value="Update" @onclick="(()=>UpdateEmployee(emp))" />
+                    </td>
+                        <input type="button" class="btn btn-primary" value="Delete" @onclick="(()=>DeleteEmployee(emp.Id))" />
+                    <td>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+    <div class="col-lg-12">
+        <div class="col-lg-8 control-section sb-property-border">
+            <div class="control-wrapper">
+                <label class="example-label">Select a game</label>
+                <SfDropDownList TItem="GameFields" TValue="string" PopupHeight="230px" Placeholder="e.g. Basketball" @bind-Value="@DropDownValue" DataSource="@Games">
+                    <DropDownListEvents TItem="GameFields" TValue="string" ValueChange="OnChange" />
+                    <DropDownListFieldSettings Text="Text" Value="ID" />
+                </SfDropDownList>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="property-panel-section">
+                <div class="property-panel-header">Properties</div>
+                <div class="property-panel-content">
+                    <div class="property-value">Selected Value : <b>@DropDownValue</b></div>
+                    <div class="property-value">Selected Text : <b>@ChangeValue</b></div>
+                </div>
+            </div>
+        </div>
+    </div>
+<input type="date"/>
+    <style>
+        .control-wrapper {
+            max-width: 250px;
+            margin: 0 auto;
+            padding: 50px 0px 0px;
+        }
+
+        .example-label {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .property-panel-section .property-value {
+            padding: 5px 0px 10px;
+            font-size: 14px;
+        }
+        .property-panel-content {
+            padding: 0px 0px 15px 0px;
+        }
+        .property-panel-content:last-child {
+                padding: 0px 0px 40px 0px;
+            }
+    </style>
+
+ 
+
+@code{
+    private TblEmployee employee = new TblEmployee();
+    //private  emp = new tblEmployee();
+    private List<TblEmployee> emplist = new List<TblEmployee>();
+    protected override async Task OnInitializedAsync()
+    {
+        await GetEmployee();   
+    }
+    private async Task GetEmployee()
+    {
+        emplist = await empService.GetEmployees();
+    }
+    public async void AddNewEmployee()
+    {
+        var response = await empService.AddNewEmployee(employee);
+        if (response != null)
+        {
+            await GetEmployee();
+            await Alert("Em[ployee Added Successfully");
+        }
+    }
+    public async void UpdateEmployee(TblEmployee employee)
+    {
+        var response = await empService.UpdateEmployee(employee);
+        if (response != null)
+        {
+            await GetEmployee();
+            await Alert("Em[ployee Update Successfully");
+        }
+    } 
+    public async void DeleteEmployee(int EmployeeId)
+    {
+        var response = await empService.DeleteEmployee(EmployeeId);
+        if (response != null)
+        {
+            await GetEmployee();
+            await Alert("Em[ployee Delete Successfully");
+        }
+    }
+    private async Task Alert(string Message)
+    {
+        await JSRuntime.InvokeAsync<object>("Alert", Message);
+    }
+    
+   public class GameFields
+    {
+        public string ID { get; set; }
+        public string Text { get; set; }
+    }
+    private List<GameFields> Games = new List<GameFields>()
+    {
+        new GameFields(){ ID= "Game1", Text= "American Football" },
+        new GameFields(){ ID= "Game2", Text= "Badminton" },
+        new GameFields(){ ID= "Game3", Text= "Basketball" },
+        new GameFields(){ ID= "Game4", Text= "Cricket" },
+        new GameFields(){ ID= "Game5", Text= "Football" },
+        new GameFields(){ ID= "Game6", Text= "Golf" },
+        new GameFields(){ ID= "Game7", Text= "Hockey" },
+        new GameFields(){ ID= "Game8", Text= "Rugby"},
+        new GameFields(){ ID= "Game9", Text= "Snooker" },
+        new GameFields(){ ID= "Game10", Text= "Tennis"}
+     };
+    public string DropDownValue = "Game3";
+    public string ChangeValue { get; set; } = "Basketball";
+    public void OnChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, GameFields> args)
+    {
+        this.ChangeValue = args.ItemData.Text;
+    }
+    //protected async void CountryClicked(ChangeEventArgs countryEvent)
+    //{
+    //    //emplist.Clear();
+    //    //cityName = string.Empty;
+    //    //countryId = countryEvent.Value.ToString();
+    //    //countryName = emplist.FirstOrDefault(s => s.CountryId == countryId).CountryName;
+    //    //emplist = await Http.GetJsonAsync<List<Cities>>("api/Countries/GetCities/" + countryId);
+    //    this.StateHasChanged();
+    //}
+    protected async void CityClicked(ChangeEventArgs cityEvent)
+    {
+        string cityName = cityEvent.Value.ToString();
+        this.StateHasChanged();
+    }
+}

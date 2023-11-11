@@ -1,0 +1,219 @@
+﻿@page "/PurchaseInfo/{Id}"
+@page "/PurchaseInfo"
+@using ProjectAccounting.Models.CustomModels;
+@using ProjectAccounting.Models.Models;
+@using ProjectAccounting.UI.Services;
+@using Syncfusion.Blazor.DropDowns;
+@inject NavigationManager NavigationManager
+@inject ISalesService SaleService
+@inject IUserService empService;
+@inject ISupplierService supplierService;
+@inject IPurchaseService purchaseService
+@inject ICommonService CommonService
+@inject IJSRuntime JSRuntime;
+<PageTitle>Purchase Order info</PageTitle>
+<h4>Purchase Order info</h4>
+@*<p role="status">Current count: @currentCount</p>*@
+<div class="container fs-6">
+   
+    <EditForm class="row g-3" Model="@purchase">
+        <div class="col-md-6">
+        <label for="inputAddress" class="form-label">Purchase Order</label>
+            <InputText @bind-Value="purchase.PurchaseOrderNo" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputAddress" class="form-label">Sales Order</label>
+            <InputText @bind-Value="purchase.SalesOrderNo" @oninput="GetSalesInfo" class="form-control" />
+            @*<InputText @bind-Value="purchase.SalesOrderNo" @bind-Value:event="GetInfo" @onchange="Salees_Change" @oninput="GetSalesInfo" class="form-control" />*@
+        </div>
+        <div class="col-md-6">
+        <label for="inputAddress" class="form-label">Date</label>
+            <InputDate @bind-Value="purchase.PurchaseOrderDate" class="form-control"></InputDate>
+        </div>
+        <div class="col-md-6">
+            <label for="inputAddress" class="form-label">Item Descrition</label>
+            <InputText @bind-Value="purchase.ItemDescrition" class="form-control"></InputText>
+        </div>
+        <div class="col-md-6">
+        <label for="inputAddress" class="form-label">Supplier Name</label>
+
+            <select class="form-select" value="@purchase.SupplierId" bind="@purchase.SupplierId" @onchange="ddlSupplier_Onchange">
+                @if (SuppplierList != null)
+                {
+                    @foreach (var cln in SuppplierList)
+                    {
+                        <option value="@cln.Id">@cln.SupplierName</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-6">
+        <label for="inputAddress" class="form-label">Item Description</label>
+        <input type="text" class="form-control"  aria-label="First name">
+        </div>
+        <div class="col-md-6">
+        <label for="inputAddress" class="form-label">Amount</label>
+            <InputNumber @bind-Value="purchase.Amount" class="form-control"></InputNumber>
+        </div>
+        <div class="col-12">
+            <input type="button" class="btn btn-primary" value="Save" @onclick="(()=> AddNew(purchase))">Save</input>
+            <input type="button" class="btn btn-success" value="Update" @onclick="(()=> Update(purchase))">Update</input>
+            <input type="button" class="btn btn-danger" value="Delete" @onclick="(()=> Delete(purchase))">Delete</input>
+            <button type="button" class="btn btn-secondary">Close</button>
+        </div>
+
+    </EditForm>
+    </div>
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+    private int currentCount = 0; 
+    private TblPurchaseOrder purchase = new TblPurchaseOrder();
+    private List<TblSupplier> SuppplierList = new List<TblSupplier>();
+    public TblSaleOrder objSale = new TblSaleOrder();
+    private DateTime Dt;
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+    private TblUser User = new TblUser();
+
+    private List<TblUser> userlist = new List<TblUser>();
+    protected override async Task OnInitializedAsync()
+    {
+
+        //await GetUsers();
+        if (Id != null)
+        { await GetPurchaseInfoById(Id); }
+
+        else
+        {
+            // await GetPurchaseOrder();
+
+        }
+        purchase.PurchaseOrderDate = DateTime.Now;
+        await GetUsers();
+        await GetSupplier();
+        await GetPurchaseOrder();
+        Dt = DateTime.Now;
+        this.StateHasChanged();
+    }
+    private async Task GetPurchaseOrder()
+    {
+        string SalesCode = "PurchaseOrderNo2023";
+        sp_GetPatternConfig obj = await CommonService.GetCodeByCode(SalesCode);
+        purchase.PurchaseOrderNo = obj.VoucherNumber;
+        //string ss = obj.ToString();
+    }
+    private async Task GetUsers()
+    {
+        userlist = await empService.GetUsers();
+    }
+    private async Task GetPurchaseInfoById(string Id)
+    {
+        int ID;
+        ID = Convert.ToInt32(Id);
+        purchase = await purchaseService.GetPurchasesById(ID);
+        this.StateHasChanged();
+    }
+    protected async void ddlSupplier_Onchange(ChangeEventArgs evt)
+    {
+        string cityName = evt.Value.ToString();
+        //this.StateHasChanged();
+
+        purchase.SupplierId = Convert.ToInt32(evt.Value);
+    }
+
+    protected async void GetSalesInfo(ChangeEventArgs evt)
+    {
+
+        string SaleOrderNo = evt.Value.ToString();
+        if (SaleOrderNo != "")
+        {
+            objSale = await SaleService.GetSalesBySalesCode(SaleOrderNo);
+
+            if (objSale is null)
+            {
+                this.StateHasChanged();
+                await Alert("There is no sale order");
+            }
+            else
+            {
+                purchase.SalesOrderId = Convert.ToInt32(objSale.Id);
+            }
+            //string PlaceofWork = objSale.PlaceofWork;
+            
+
+            this.StateHasChanged();
+        }
+        //expense.SalesOrderNo = SaleOrderNo;
+        //objSale.SalesOrderNo = SaleOrderNo;
+
+
+    }
+    protected async void GetInfo(ChangeEventArgs evt)
+    {
+        string SaleOrderNo = evt.Value.ToString();
+        if (SaleOrderNo != null)
+        {
+            var sal = SaleService.GetSalesBySalesCode(SaleOrderNo);
+        }
+        
+    }
+    protected async void Salees_Change(ChangeEventArgs evt)
+    {
+        string SaleOrderNo = evt.Value.ToString();
+
+    }
+    private async Task GetSupplier()
+    {
+        TblSupplier objRole = new TblSupplier();
+        objRole.Id = 0;
+        objRole.SupplierName = "Select Supplier";
+
+        SuppplierList = await supplierService.GetSupplier();
+        SuppplierList.Add(objRole);
+        SuppplierList.Reverse();
+    }
+    public async void AddNew(TblPurchaseOrder Sale)
+    {
+        var response = await purchaseService.AddPurchases(Sale);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Employee Added Successfully");
+        }
+    }
+    public async void Update(TblPurchaseOrder Sale)
+    {
+        var response = await purchaseService.UpdatePurchases(Sale);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Em[ployee Update Successfully");
+        }
+    }
+    public async void Delete(TblPurchaseOrder Sale)
+    {
+        //int UserId = Convert.ToInt32(User.Id);
+        var response = await purchaseService.DeletePurchases(Sale);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            //this.StateHasChanged();
+            await Alert("Employee Delete Successfully");
+        }
+
+    }
+    private async Task Alert(string Message)
+    {
+        await JSRuntime.InvokeAsync<object>("Alert", Message);
+        NavigationManager.NavigateTo("PurchaseOrderList");
+    }
+}

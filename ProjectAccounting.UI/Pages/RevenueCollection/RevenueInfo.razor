@@ -1,0 +1,239 @@
+﻿@page "/RevenueInfo/{Id}"
+@page "/RevenueInfo"
+@using ProjectAccounting.Models.CustomModels;
+@using ProjectAccounting.Models.Models;
+@using ProjectAccounting.UI.Services;
+@inject NavigationManager NavigationManager
+@inject IRevenueService revenueService;
+@inject IUserService UserService;
+@inject IUserRoleService UserRoleService
+@inject ISalesService SaleService
+@inject IBankAccountOwnerService BankAccountOwner
+@inject IJSRuntime JSRuntime;
+<PageTitle></PageTitle>
+
+<h4>Reveue Info</h4>
+
+@*<p role="status">Current count: @currentCount</p>*@
+<div class="container fs-6">
+    <EditForm class="row g-3" Model="@revenue">
+        <div class="col-md-6">
+            <label for="inputEmail4" class="form-label">Sales Order No</label>
+            <InputText @bind-Value="revenue.SalesOrderNo" @oninput="GetSalesInfo" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputPassword4" class="form-label">Vouchar No</label>
+            <InputText @bind-Value="revenue.VoucherNo" class="form-control" />
+        </div>
+        <div class="col-md-12">
+            <label for="inputCity" class="form-label">Sales Info</label>
+            <InputTextArea @bind-Value="objSale.PlaceofWork" class="form-control" />
+        </div>
+        <div class="col-6">
+            <label for="inputAddress" class="form-label">Bill No</label>
+            <InputText @bind-Value="revenue.BillNo" class="form-control" />
+        </div>
+        <div class="col-6">
+            <label for="inputAddress2" class="form-label">Bill Date</label>
+            <InputDate @bind-Value="revenue.BillDate" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Bill Amount</label>
+            <InputNumber @bind-Value="revenue.BillAmount" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">VAT Amount</label>
+            <InputNumber @bind-Value="revenue.VatTaxAmount" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">AIT Amount</label>
+            <InputNumber @bind-Value="revenue.Aitamunt" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Advance Amount</label>
+            <InputNumber @bind-Value="revenue.AdvanceAmount" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">PayOrder No</label>
+            <InputText @bind-Value="revenue.PayOrderNo" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Amount </label>
+            <InputNumber @bind-Value="revenue.Aitamunt" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">PayOrder Date</label>
+            <InputDate @bind-Value="revenue.PayOrderDate" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label for="inputCity" class="form-label">Phase </label>
+            <InputNumber @bind-Value="revenue.AdvancePhase" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label for="inputCity" class="form-label">Is Final</label>
+            <br>
+          @*  <InputCheckbox @bind-Value="revenue.IsfinalPayment"></InputCheckbox>*@
+        </div>
+      
+        <div class="col-md-6">
+            <label for="inputAddress" class="form-label">Account Name</label>
+            <select class="form-select" value="@revenue.BankAccountId" bind="@revenue.BankAccountId">
+                @if (AccountNamelist != null)
+                {
+                    @foreach (var cln in AccountNamelist)
+                    {
+                        <option value="@cln.Id">@cln.AccountName</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Cheque No</label>
+            <InputText @bind-Value="revenue.ChequeNo" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Cheque Date</label>
+            <InputDate @bind-Value="revenue.ChequeDate" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Amount</label>
+            <InputNumber @bind-Value="revenue.Amount" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Receive Date</label>
+            <InputDate @bind-Value="revenue.ReceiveDate" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Bank Receive Date</label>
+            <InputDate @bind-Value="revenue.BankReceiveDate" class="form-control" />
+        </div>
+        <div class="col-12">
+            <input type="button" class="btn btn-primary" value="Save" @onclick="(()=> AddNew(revenue))">Save</input>
+            <input type="button" class="btn btn-success" value="Update" @onclick="(()=> Update(revenue))">Update</input>
+            <input type="button" class="btn btn-danger" value="Delete" @onclick="(()=> Delete(revenue))">Delete</input>
+            <button type="button" class="btn btn-secondary">Close</button>
+        </div>
+      </EditForm>
+</div>
+@code {
+    private int currentCount = 0;
+    [Parameter]
+    public string? Id { get; set; }
+    public TblUser User = new TblUser();
+    public TblRevenue revenue = new TblRevenue();
+    public TblSaleOrder objSale = new TblSaleOrder();
+    private List<TblBankAccountOwner> AccountNamelist = new List<TblBankAccountOwner>();
+    private DateTime StartDt;
+    private DateTime Closedt;
+    private DateTime Completetiondt;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        // currentCount++;
+        if (Id != null)
+        {
+
+            //await GetUserInfosById(Id);
+            await GetRevenueById(Id);
+        }
+        else
+        {
+
+            //await GetSaleCode();
+            StartDt = DateTime.Now;
+            Closedt = DateTime.Now;
+            Completetiondt = DateTime.Now;
+
+         
+            }
+
+            //await GetUserRoles();
+            //await GetEmployee();
+            //await GetClient();
+            //await GetOwners();
+
+            //Sale.IsProjectClose = false;
+            await GetBankAccountOwner();
+            revenue.ChequeDate = revenue.BillDate = revenue.ReceiveDate = DateTime.Now;
+            revenue.PayOrderDate = revenue.BankReceiveDate = revenue.BillDate = DateTime.Now;
+            this.StateHasChanged();
+        
+    }
+    protected async void GetSalesInfo(ChangeEventArgs evt)
+    {
+
+        string SaleOrderNo = evt.Value.ToString();
+        //expense.SalesOrderNo = SaleOrderNo;
+        //objSale.SalesOrderNo = SaleOrderNo;
+        objSale = await SaleService.GetSalesBySalesCode(SaleOrderNo);
+        string PlaceofWork = objSale.PlaceofWork;
+        this.StateHasChanged();
+
+    }
+
+    private async Task GetBankAccountOwner()
+    {
+        TblBankAccountOwner objRole = new TblBankAccountOwner();
+        objRole.Id = 0;
+        objRole.AccountName = "Select Account";
+
+        AccountNamelist = await BankAccountOwner.GetBankAccountOwner();
+        AccountNamelist.Add(objRole);
+        AccountNamelist.Reverse();
+    }
+    private async Task GetUserInfosById(string Id)
+    {
+        int ID;
+        ID = Convert.ToInt32(Id);
+        User = await UserService.GetUserInfosById(ID);
+        this.StateHasChanged();
+    }
+    private async Task GetRevenueById(string Id)
+    {
+        int ID;
+        ID = Convert.ToInt32(Id);
+        revenue = await revenueService.GetRevenueById(ID);
+        this.StateHasChanged();
+    }
+    public async void AddNew(TblRevenue revenue)
+    {
+        var response = await revenueService.AddRevenue(revenue);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Revenue Added Successfully");
+        }
+    }
+    public async void Update(TblRevenue revenue)
+    {
+        var response = await revenueService.UpdateRevenue(revenue);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Revenue Update Successfully");
+        }
+    }
+    public async void Delete(TblRevenue revenue)
+    {
+        //int UserId = Convert.ToInt32(User.Id);
+        var response = await revenueService.DeleteRevenue(revenue);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Revenue Delete Successfully");
+        }
+
+    }
+    private async Task Alert(string Message)
+    {
+        await JSRuntime.InvokeAsync<object>("Alert", Message);
+        NavigationManager.NavigateTo("SalesList");
+    }
+}

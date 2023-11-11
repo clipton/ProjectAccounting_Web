@@ -1,0 +1,162 @@
+﻿@page "/ClientInfo/{Id}"
+@page "/ClientInfo"
+@using ProjectAccounting.Models.CustomModels;
+@using ProjectAccounting.Models.Models;
+@using ProjectAccounting.UI.Services;
+@inject NavigationManager NavigationManager
+@inject IClientService clientService;
+@inject IUserService UserService;
+@inject IUserRoleService UserRoleService
+@inject IJSRuntime JSRuntime;
+<PageTitle></PageTitle>
+<h4>Client Info</h4>
+<div class="container fs-6">
+    <EditForm class="row g-3" Model="@client">
+    <div class="col-md-12">
+        <label for="inputEmail4" class="form-label">Client Code</label>
+            <InputText @bind-Value="client.ClientCode"class="form-control" />
+    </div>
+    <div class="col-md-12">
+        <label for="inputPassword4" class="form-label">Client Name</label>
+            <InputText @bind-Value="client.ClientName" class="form-control" />
+    </div>
+    <div class="col-6">
+        <label for="inputAddress" class="form-label">Telephone</label>
+            <InputText @bind-Value="client.Telephone" class="form-control" />
+    </div>
+    <div class="col-6">
+        <label for="inputAddress2" class="form-label">Mobile</label>
+            <InputText @bind-Value="client.Mobile" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label for="inputCity" class="form-label">Fax</label>
+            <InputText @bind-Value="client.Fax" class="form-control" />
+    </div>
+    <div class="col-md-6">
+            <label for="inputCity" class="form-label">Email</label>
+            <InputText @bind-Value="client.Email" class="form-control" />
+    </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Contact Person</label>
+            <InputText @bind-Value="client.ContactPerson" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Contact Number</label>
+            <InputText @bind-Value="client.ContactPersonNumber" class="form-control" />
+        </div>
+        <div class="col-md-12">
+            <label for="inputCity" class="form-label">Address </label>
+            <InputText @bind-Value="client.Address" class="form-control" />
+        </div>
+ 
+    <div class="col-12">
+        @*<button type="submit" class="btn btn-primary">Sign in</button>*@
+        @*    <button type="button" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-success">Update</button>
+            <button type="button" class="btn btn-danger">Delete</button>
+            <button type="button" class="btn btn-secondary">Close</button>*@
+            <input type="button" class="btn btn-primary" value="Save" @onclick="(()=> AddNew(client))">Save</input>
+            <input type="button" class="btn btn-success" value="Update" @onclick="(()=> Update(client))">Update</input>
+            <input type="button" class="btn btn-danger" value="Delete" @onclick="(()=> Delete(client))">Delete</input>
+            <button type="button" class="btn btn-secondary">Close</button>
+    </div>
+    </EditForm>
+</div>
+@code {
+    private int currentCount = 0;
+    [Parameter]
+    public string? Id { get; set; }
+    public TblUser User = new TblUser();
+    public TblClient client = new TblClient();
+
+    private DateTime StartDt;
+    private DateTime Closedt;
+    private DateTime Completetiondt;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        // currentCount++;
+        if (Id != null)
+        {
+
+            //await GetUserInfosById(Id);
+            await GetClientInfoById(Id);
+        }
+        else
+        {
+
+            //await GetSaleCode();
+            StartDt = DateTime.Now;
+            Closedt = DateTime.Now;
+            Completetiondt = DateTime.Now;
+            //Sale.Startdate = StartDt;
+            //Sale.ClosingDate = Closedt;
+            //Sale.ProjectCloseDate = Completetiondt;
+        }
+
+        //await GetUserRoles();
+        //await GetEmployee();
+        //await GetClient();
+        //await GetOwners();
+
+        //Sale.IsProjectClose = false;
+        this.StateHasChanged();
+
+    }
+
+    private async Task GetUserInfosById(string Id)
+    {
+        int ID;
+        ID = Convert.ToInt32(Id);
+        User = await UserService.GetUserInfosById(ID);
+        this.StateHasChanged();
+    }
+    private async Task GetClientInfoById(string Id)
+    {
+        int ID;
+        ID = Convert.ToInt32(Id);
+        client = await clientService.GetClientInfoById(ID);
+        this.StateHasChanged();
+    }
+    public async void AddNew(TblClient Client)
+    {
+        var response = await clientService.AddClient(Client);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Client Added Successfully");
+        }
+    }
+    public async void Update(TblClient Client)
+    {
+        var response = await clientService.UpdateClient(Client);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Client Update Successfully");
+        }
+    }
+    public async void Delete(TblClient Client)
+    {
+        //int UserId = Convert.ToInt32(User.Id);
+        var response = await clientService.DeleteClient(Client);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Client Delete Successfully");
+        }
+
+    }
+    private async Task Alert(string Message)
+    {
+        await JSRuntime.InvokeAsync<object>("Alert", Message);
+        NavigationManager.NavigateTo("ClientInfoList");
+    }
+}

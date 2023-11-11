@@ -1,0 +1,212 @@
+﻿@page "/BillingInfo/{Id}"
+@page "/BillingInfo"
+@using ProjectAccounting.Models.CustomModels;
+@using ProjectAccounting.Models.Models;
+@using ProjectAccounting.UI.Services;
+@inject NavigationManager NavigationManager
+@inject IBillingService billingService;
+@inject IUserService UserService;
+@inject IUserRoleService UserRoleService
+@inject IClientService clientService
+@inject IJSRuntime JSRuntime;
+@*<PageTitle></PageTitle>*@
+
+<h4>Billing info</h4>
+
+@*<p role="status">Current count: @currentCount</p>*@
+<div class="container fs-6">
+    <EditForm class="row g-3" Model="@Billing">
+        <div class="col-md-6">
+            <label for="inputEmail4" class="form-label">Sales Order No</label>
+            <InputText @bind-Value="Billing.SalesOrderNo" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputPassword4" class="form-label">Voucher No</label>
+            <InputText @bind-Value="Billing.VoucharNumber" class="form-control" />
+        </div>
+        <div class="col-md-6">
+          
+            <label for="inputAddress" class="form-label">Client name</label>
+            <select class="form-select" value="@Billing.ClientId" bind="@Billing.ClientId" @onchange="ddlClient_Onchange">
+            @*<select class="form-select" @bind-value="Billing.ClientId" @onchange="ddlClient_Onchange">*@
+                @if (clientlist != null)
+                {
+                    @foreach (var cln in clientlist)
+                    {
+                        <option value="@cln.Id">@cln.ClientName</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-6">
+            <label for="inputAddress" class="form-label">Owners Name</label>
+            <InputText @bind-Value="Billing.VoucharNumber" class="form-control" />
+        </div>
+        <div class="col-6">
+            <label for="inputAddress2" class="form-label">Type of Work</label>
+            <InputText @bind-Value="Billing.VoucharNumber" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Bill No</label>
+            <InputText @bind-Value="Billing.BillNo" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Bill Date</label>
+            <InputDate @bind-Value="Billing.BillDate" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Phase </label>
+            <InputNumber @bind-Value="Billing.BillPhase" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Amount </label>
+            <InputNumber @bind-Value="Billing.BillAmount" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Is Final</label>
+            <br>
+            <InputCheckbox @bind-Value="Billing.IsFinalBill"/>
+        </div>
+       
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Receive Date</label>
+            <InputDate @bind-Value="Billing.BillReciveDate" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Revised Bill Date</label>
+            <InputDate @bind-Value="Billing.RevisedBillDate" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Revised Amount</label>
+            <InputNumber @bind-Value="Billing.RevisedBillAmount" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Remarks</label>
+            <InputText @bind-Value="Billing.Remarks" class="form-control" />
+        </div>
+        <div class="col-12">
+            <input type="button" class="btn btn-primary" value="Save" @onclick="(()=> AddNew(Billing))">Save</input>
+            <input type="button" class="btn btn-success" value="Update" @onclick="(()=> Update(Billing))">Update</input>
+            <input type="button" class="btn btn-danger" value="Delete" @onclick="(()=> Delete(Billing))">Delete</input>
+            <button type="button" class="btn btn-secondary">Close</button>
+        </div>
+      </EditForm>
+</div>
+@code {
+    private int currentCount = 0;
+    [Parameter]
+    public string? Id { get; set; }
+    public TblUser User = new TblUser();
+    public TblBilling Billing = new TblBilling();
+    private List<TblClient> clientlist = new List<TblClient>();
+
+    private DateTime StartDt;
+    private DateTime Closedt;
+    private DateTime Completetiondt;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        // currentCount++;
+        if (Id != null)
+        {
+
+            //await GetUserInfosById(Id);
+            await GetBillingInfoById(Id);
+        }
+        else
+        {
+
+            //await GetSaleCode();
+            StartDt = DateTime.Now;
+            Closedt = DateTime.Now;
+            Completetiondt = DateTime.Now;
+            //Sale.Startdate = StartDt;
+            //Sale.ClosingDate = Closedt;
+            //Sale.ProjectCloseDate = Completetiondt;
+        }
+
+        //await GetUserRoles();
+        //await GetEmployee();
+        await GetClient();
+        //await GetOwners();
+
+        //Sale.IsProjectClose = false;
+        Billing.BillDate= Billing.BillReciveDate = Billing.RevisedBillDate = DateTime.Now;
+        Billing.IsFinalBill = false;
+        this.StateHasChanged();
+        
+    }
+    
+    private async Task GetUserInfosById(string Id)
+    {
+        int ID;
+        ID = Convert.ToInt32(Id);
+        User = await UserService.GetUserInfosById(ID);
+        this.StateHasChanged();
+    }
+    private async Task GetClient()
+    {
+        TblClient objRole = new TblClient();
+        objRole.Id = 0;
+        objRole.ClientName = "Select Client Name";
+
+        clientlist = await clientService.GetClient();
+        clientlist.Add(objRole);
+        clientlist.Reverse();
+    }
+    protected async void ddlClient_Onchange(ChangeEventArgs evt)
+    {
+        string cityName = evt.Value.ToString();
+        //this.StateHasChanged();
+
+        Billing.ClientId = Convert.ToInt32(evt.Value);
+    }
+    private async Task GetBillingInfoById(string Id)
+    {
+        int ID;
+        ID = Convert.ToInt32(Id);
+        Billing = await billingService.GetBillingInfoById(ID);
+        this.StateHasChanged();
+    }
+    public async void AddNew(TblBilling Billing)
+    {
+        var response = await billingService.AddBilling(Billing);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Employee Added Successfully");
+        }
+    }
+    public async void Update(TblBilling Billing)
+    {
+        var response = await billingService.UpdateBilling(Billing);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Em[ployee Update Successfully");
+        }
+    }
+    public async void Delete(TblBilling Billing)
+    {
+        //int UserId = Convert.ToInt32(User.Id);
+        var response = await billingService.DeleteBilling(Billing);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Employee Delete Successfully");
+        }
+
+    }
+    private async Task Alert(string Message)
+    {
+        await JSRuntime.InvokeAsync<object>("Alert", Message);
+        NavigationManager.NavigateTo("SalesList");
+    }
+}

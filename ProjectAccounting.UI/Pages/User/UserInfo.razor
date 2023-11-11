@@ -1,0 +1,153 @@
+﻿@page "/UserInfo/{Id}"
+@page "/UserInfo"
+@using ProjectAccounting.Models.CustomModels;
+@using ProjectAccounting.Models.Models;
+@using ProjectAccounting.UI.Services;
+@using Syncfusion.Blazor.DropDowns;
+@inject NavigationManager NavigationManager
+@inject IUserService UserService;
+@inject IUserRoleService UserRoleService
+@inject IJSRuntime JSRuntime;
+<PageTitle>Counter</PageTitle>
+<h4>User Info</h4>
+<h5>@Id</h5>
+<div class="container fs-6">
+    <EditForm class="row g-3" Model="@User">
+    <div class="row">
+    <div class="form-Group">
+            <label>Code</label>
+            <InputText @bind-Value="User.UserCode" class="form-control" />
+            @* <input id="UserName" class="form-control" name="UserCode"  value="@User.UserCode" />*@
+    </div>
+    <div class="form-Group">
+        <label>User Name</label>
+        @*<input id="UserName" class="form-control" name="UserName" value="@User.UserName" />*@
+            <InputText @bind-Value="User.UserName" class="form-control" />
+    </div>
+    <div class="form-control-lg">
+                <label>User Role</label>
+                <select class="form-select" value="@User.UserRoleId" bind="@User.UserRoleId" @onchange="ddlUser_Onchange" >
+                    @if (userRolelist != null)
+                                {
+                                @foreach (var rol in userRolelist)
+                                        {
+                                        <option value="@rol.Id">@rol.RoleName</option>
+                                        }
+                                }
+                </select>
+    </div>
+    <div class="col-12">
+               @* @if (disableState = true)
+                {
+                    <input type="button" class="btn btn-primary" value="Save" @onclick="(()=> AddNew(User))">Save</input>
+                } else
+                {
+                    <input type="button" disabled class="btn btn-primary" value="Save" @onclick="(()=> AddNew(User))">Save </input>
+                }*@
+                <input type="button" class="btn btn-primary" value="Save" @onclick="(()=> AddNew(User))">Save</input>
+                <input type="button" class="btn btn-success" value="Update" @onclick="(()=> Update(User))">Update</input>
+                <input type="button" class="btn btn-danger" value="Delete" @onclick="(()=> Delete(User))">Delete</input>
+                <button type="button" class="btn btn-secondary">Close</button>
+      </div>
+            <div class="form-Group">
+                <InputDate @bind-Value="@Dt" class="form-control"></InputDate>
+                <InputDate @bind-Value="User.UpdateDate" @bind-Value:format="dd/MM/yyyy" />
+        </div>
+        </div>
+    </EditForm>
+</div>
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+    public TblUser User = new TblUser();
+    private List<TblUser> userlist = new List<TblUser>();
+    private List<TblUserRole> userRolelist = new List<TblUserRole>();
+    private DateTime Dt;
+    bool UpdatedisableState;
+    bool SavedisableState;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //await GetUsers();
+        if (Id != null) 
+        { await GetUserInfosById(Id);  }
+
+        else { //UpdatedisableState = true; SavedisableState = false; 
+        }
+        //SavedisableState = true; UpdatedisableState = false;
+
+        await GetUserRoles();
+        Dt = DateTime.Now;
+        
+        this.StateHasChanged();
+
+
+    }
+    private async Task GetUsers()
+    {
+        userlist = await UserService.GetUsers();
+    }
+    private async Task GetUserRoles()
+    {
+        TblUserRole objRole = new TblUserRole();
+        objRole.Id = 0;
+        objRole.RoleName = "Select Role";
+
+        userRolelist = await UserRoleService.GetUserRoles();
+        userRolelist.Add(objRole);
+        userRolelist.Reverse();
+    }
+    private async Task GetUserInfosById(string Id)
+    {   int ID;
+        ID = Convert.ToInt32(Id);
+        User = await UserService.GetUserInfosById(ID);
+        this.StateHasChanged();
+    }
+    public async void AddNew(TblUser User)
+    {
+        var response = await UserService.AddNewUser(User);
+        if (response != null)
+        {
+            //await GetUsers();
+            
+            this.StateHasChanged();
+            await Alert("UserInfo Added Successfully");
+        }
+    }
+    public async void Update(TblUser User)
+    {
+        var response = await UserService.UpdateUser(User);
+        if (response != null)
+        {
+            //await GetUsers();
+            
+            this.StateHasChanged();
+            await Alert("UserInfo Update Successfully");
+        }
+    }
+    public async void Delete(TblUser User)
+    {
+        //int UserId = Convert.ToInt32(User.Id);
+        var response = await UserService.DeleteUser(User);
+        if (response != null)
+        {
+            //await GetUsers();
+            
+            //this.StateHasChanged();
+            await Alert("UserInfo Delete Successfully");
+        }
+
+    }
+    private async Task Alert(string Message)
+    {
+        await JSRuntime.InvokeAsync<object>("Alert", Message);
+        NavigationManager.NavigateTo("UserInfos");
+    }
+    protected async void ddlUser_Onchange(ChangeEventArgs evt)
+    {
+        string cityName = evt.Value.ToString();
+        //this.StateHasChanged();
+
+        User.UserRoleId = Convert.ToInt32(evt.Value);
+    }
+}

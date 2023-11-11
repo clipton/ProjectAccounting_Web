@@ -1,0 +1,302 @@
+﻿@page "/SalesEntry/{Id}"
+@page "/SalesEntry"
+@using ProjectAccounting.Models.Models;
+@using ProjectAccounting.UI.Services;
+@using Syncfusion.Blazor.DropDowns;
+@inject NavigationManager NavigationManager
+@inject IUserService UserService;
+@inject IUserRoleService UserRoleService
+@inject IEmployeeService employeeService
+@inject IClientService clientService
+@inject IOwnerService OwnerService
+@inject ISalesService SalesService
+@inject ICommonService CommonService
+@inject IJSRuntime JSRuntime;
+@*<PageTitle>Sales Order Info</PageTitle>*@
+<h4>Sales Order </h4>
+<div class="container fs-6">
+    <EditForm class="row g-3" Model="@Sale">
+       
+        <div class="col-md-6">
+            <label for="" class="form-label">Sales Info</label>
+        </div>
+        <div class="col-md-6">
+        </div>
+        <div class="col-md-6">
+            <label for="inputEmail4" class="form-label">Sales Order No</label>
+            <InputText @bind-Value="Sale.SalesOrderNo" class="form-control" />
+            <ValidationMessage For="@(()=>Sale.SalesOrderNo)"></ValidationMessage>
+        </div>
+        <div class="col-md-6">
+            <label for="inputPassword4" class="form-label">App. Work Value</label>
+            <InputText @bind-Value="Sale.AppWorkValue" class="form-control" />
+            <ValidationMessage For="@(()=>Sale.SalesOrderNo)"></ValidationMessage>
+            
+        </div>
+        <div class="col-md-6">
+            <label for="inputAddress" class="form-label">Owner Name</label>
+            <select class="form-select" value="@Sale.OwnersId" bind="@Sale.OwnersId" @onchange="ddlOwner_Onchange">
+                @if (ownerslist != null)
+                {
+                    @foreach (var city in ownerslist)
+                    {
+                        <option value="@city.Id">@city.Owners</option>
+                    }
+                }
+            </select>
+        </div>
+      
+        <div class="col-6">
+                <label for="inputAddress" class="form-label">Project Manager</label>
+                <select class="form-select" value="@Sale.PmId" bind="@Sale.PmId" @onchange="ddlemp_Onchange">
+                    @if (employeelist != null)
+                    {
+                        @foreach (var city in employeelist)
+                        {
+                            <option value="@city.Id">@city.EmployeeName</option>
+                        }
+                    }
+                </select>
+            
+        </div>
+        <div class="col-md-6">
+          
+            <label for="inputAddress" class="form-label">Client name</label>
+            
+            <select class="form-select" value="@Sale.CleintId" bind="@Sale.CleintId" @onchange="ddlClient_Onchange">
+                @if (clientlist != null)
+                {
+                    @foreach (var cln in clientlist)
+                    {
+                        <option value="@cln.Id">@cln.ClientName</option>
+                    }
+                }
+            </select>
+        </div>
+        
+        <div class="col-6">
+            <label for="inputAddress" class="form-label">Project Name</label>
+
+            <InputText @bind-Value="Sale.PlaceofWork" class="form-control" />
+          
+        </div>
+        <div class="col-6">
+            <label for="inputAddress2" class="form-label">Place Of Work</label>
+            <InputText @bind-Value="Sale.PlaceofWork" class="form-control" />
+            
+        </div>
+        <div class="col-md-6">
+            <label for="inputCity" class="form-label">Type OF Work</label>
+            <InputText @bind-Value="Sale.TypeOfWork" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label for="inputZip" class="form-label">Start Date</label>
+            <InputDate @bind-Value="Sale.Startdate" class="form-control"></InputDate>
+        </div>
+        <div class="col-md-6">
+            <label for="inputZip" class="form-label">Completation Date</label>
+            <InputDate @bind-Value="Sale.ClosingDate" class="form-control"></InputDate>
+        </div>
+        <div class="col-md-3">
+            <label for="form-check-label" class="form-label">Sales Order Status</label>
+            <br>
+            <InputCheckbox @bind-Value="Sale.IsProjectClose"></InputCheckbox>
+        </div>
+        <div class="col-md-3">
+            <label for="inputZip" class="form-label">Close Date</label>
+            <InputDate @bind-Value="Sale.ProjectCloseDate" class="form-control"></InputDate>
+        </div>
+        <div class="col-12">
+            <input type="button" class="btn btn-primary" value="Save" @onclick="(()=> AddNew(Sale))">Save</input>
+            <input type="button" class="btn btn-success" value="Update" @onclick="(()=> Update(Sale))">Update</input>
+            <input type="button" class="btn btn-danger" value="Delete" @onclick="(()=> Delete(Sale))">Delete</input>
+            <button type="button" class="btn btn-secondary">Close</button>
+        </div>
+        <DataAnnotationsValidator/>
+    </EditForm>
+</div>
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+    public TblUser User = new TblUser();
+    public TblSaleOrder Sale = new TblSaleOrder();
+    private List<TblUser> userlist = new List<TblUser>();
+    private List<TblUserRole> userRolelist = new List<TblUserRole>();
+    private List<TblClient> clinetlist = new List<TblClient>();
+    private List<TblEmployee> employeelist = new List<TblEmployee>();
+    private List<TblClient> clientlist = new List<TblClient>();
+    private List<TblOwner> ownerslist = new List<TblOwner>();
+    private DateTime StartDt;
+    private DateTime Closedt;
+    private DateTime Completetiondt;
+
+    bool UpdatedisableState;
+    bool SavedisableState;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //await GetUsers();
+        if (Id != null)
+        { await GetUserInfosById(Id); }
+
+        else
+        { 
+
+            await GetSaleCode();
+            StartDt = DateTime.Now;
+            Closedt = DateTime.Now;
+            Completetiondt = DateTime.Now; 
+            Sale.Startdate = StartDt;
+            Sale.ClosingDate = Closedt;
+            Sale.ProjectCloseDate = Completetiondt;
+        }
+        
+        await GetUserRoles();
+        await GetEmployee();
+        await GetClient();
+        await GetOwners();
+        
+        Sale.IsProjectClose = false;
+        this.StateHasChanged();
+    }
+    private async Task GetUsers()
+    {
+        userlist = await UserService.GetUsers();
+    }
+    private async Task GetSaleCode()
+    {
+        string SalesCode = "SalesOrderNo";
+        sp_GetPatternConfig obj = await CommonService.GetCodeByCode(SalesCode);
+        Sale.SalesOrderNo = obj.VoucherNumber;
+        //string ss = obj.ToString();
+    }
+    private async Task GetUserRoles()
+    {
+        TblUserRole objRole = new TblUserRole();
+        objRole.Id = 0;
+        objRole.RoleName = "Select Role";
+
+        userRolelist = await UserRoleService.GetUserRoles();
+        userRolelist.Add(objRole);
+        userRolelist.Reverse();
+    }
+    private async Task GetEmployee()
+    {
+        TblEmployee objRole = new TblEmployee();
+        objRole.Id = 0;
+        objRole.EmployeeName = "Select Employee Name";
+
+        employeelist = await employeeService.GetEmployees();
+        employeelist.Add(objRole);
+        employeelist.Reverse();
+    }
+    private async Task GetClient()
+    {
+        TblClient objRole = new TblClient();
+        objRole.Id = 0;
+        objRole.ClientName = "Select Client Name";
+
+        clientlist = await clientService.GetClient();
+        clientlist.Add(objRole);
+        clientlist.Reverse();
+    }
+    private async Task GetOwners()
+    {
+        TblOwner objRole = new TblOwner();
+        objRole.Id = 0;
+        objRole.Owners = "Select Owners Name";
+
+        ownerslist = await OwnerService.GetOwners();
+        ownerslist.Add(objRole);
+        ownerslist.Reverse();
+    }
+    private async Task GetUserInfosById(string Id)
+    {
+        int ID;
+        ID = Convert.ToInt32(Id);
+        Sale = await SalesService.GetSalesById(ID);
+        this.StateHasChanged();
+    }
+    public async void AddNew(TblSaleOrder Sale)
+    {
+
+        if (Id == null)
+        {
+            var response = await SalesService.AddSale(Sale);
+            if (response != null)
+            {
+                //await GetUsers();
+
+                this.StateHasChanged();
+                await Alert("Sales Added Successfully");
+            }
+        }
+    }
+    public async void Update(TblSaleOrder Sale)
+    {
+        var response = await SalesService.UpdateSale(Sale);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Sales Update Successfully");
+        }
+    }
+    public async void Delete(TblSaleOrder Sale)
+    {
+        //int UserId = Convert.ToInt32(User.Id);
+        var response = await SalesService.DeleteSale(Sale);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            //this.StateHasChanged();
+            await Alert("Sales Delete Successfully");
+        }
+
+    }
+    private async Task Alert(string Message)
+    {
+        await JSRuntime.InvokeAsync<object>("Alert", Message);
+        NavigationManager.NavigateTo("SalesList");
+    }
+    protected async void CityClicked(ChangeEventArgs cityEvent)
+    {
+        string cityName = cityEvent.Value.ToString();
+        this.StateHasChanged();
+    }
+    protected async void ddlUser_Onchange(ChangeEventArgs evt)
+    {
+        string cityName = evt.Value.ToString();
+        //this.StateHasChanged();
+
+        User.UserRoleId = Convert.ToInt32(evt.Value);
+    }
+    protected async void ddlemp_Onchange(ChangeEventArgs evt)
+    {
+        string cityName = evt.Value.ToString();
+        //this.StateHasChanged();
+
+        Sale.PmId = Convert.ToInt32(evt.Value);
+    }
+    protected async void ddlClient_Onchange(ChangeEventArgs evt)
+    {
+        string cityName = evt.Value.ToString();
+        //this.StateHasChanged();
+
+        Sale.CleintId = Convert.ToInt32(evt.Value);
+    }
+    protected async void ddlOwner_Onchange(ChangeEventArgs evt)
+    {
+        string cityName = evt.Value.ToString();
+        //this.StateHasChanged();
+
+        Sale.OwnersId = Convert.ToInt32(evt.Value);
+    }
+    protected async void GetCom(ChangeEventArgs evt)
+    {
+        Sale.ProjectCloseDate = Convert.ToDateTime(evt.Value);
+    }
+    
+}

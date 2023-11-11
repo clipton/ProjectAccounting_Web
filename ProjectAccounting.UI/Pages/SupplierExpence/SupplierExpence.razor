@@ -1,0 +1,519 @@
+﻿@page "/SupplierExpence/{Id}"
+@page "/SupplierExpence"
+@using ProjectAccounting.Models.CustomModels;
+@using ProjectAccounting.Models.Models;
+@using ProjectAccounting.UI.Services;
+@using Syncfusion.Blazor.DropDowns;
+@inject NavigationManager NavigationManager
+@inject IExpenceService UserService;
+@inject IEmployeeService employeeService
+@inject ISalesService SaleService
+@inject IPurchaseService PurchaseService
+@inject ISupplierService SupplierService
+@inject IOfficeHeadService OfficeHeadService
+@inject IBankAccountOwnerService BankAccountOwner
+
+@inject Blazored.LocalStorage.ILocalStorageService olcalStorage
+
+@inject IJSRuntime JSRuntime;
+@*<PageTitle>Counter</PageTitle>*@
+<h4>Supplier Expense</h4>
+@*<h5>@Id</h5>*@
+
+<div class="container fs-6">
+
+    <EditForm class="row g-4" Model="@expense">
+
+       <div class="col-md-12">
+            <div class="form-check">
+                @if (expense.TypeOfExpense == 1)
+                {
+                //Supp = true;
+                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" checked>
+                <label class="form-check-label" for="flexRadioDefault1">
+                    Supplier
+                </label>
+                }
+            else
+                @if (expense.TypeOfExpense != 1){ 
+                     <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" >
+                <label class="form-check-label" for="flexRadioDefault1">
+                    Supplier
+                </label>
+                }
+
+            </div>
+       </div>
+    @*   <div class="col-md-4">
+            @if (expense.TypeOfExpense == 2)
+            {
+            //Supp = true;
+                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" checked>
+                <label class="form-check-label" for="flexRadioDefault1">
+                    Cash
+                </label>
+            }
+            else
+            @if (expense.TypeOfExpense != 2)
+            {
+                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                <label class="form-check-label" for="flexRadioDefault1">
+                    Cash
+                </label>
+            }
+
+       </div>
+       <div class="col-md-4">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                <label class="form-check-label" for="flexRadioDefault1">
+                    Office
+                </label>
+            </div>
+       </div>*@
+        <div class="col-md-4">
+            <label class="col-form-label">Sales Order No</label>
+            <InputText @bind-Value="expense.SalesOrderNo" @bind-Value:event="GetInfo" @onchange="Salees_Change" @oninput="GetSalesInfo" class="form-control " />
+        </div>
+        <div class="col-md-4">
+            <label class="col-form-label">Voucher Number</label>
+            <InputText @bind-Value="expense.VoucherNumber" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label class="col-form-label">Sales Description</label>
+            <InputText @bind-Value="objSale.PlaceofWork" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label class="col-form-label">Purchase Order No</label>
+            <InputText @bind-Value="expense.PurchaseOrderNo" @bind-Value:event="GetPurchaseInfo" @onchange="Puchase_Change" @oninput="GetpurchaseInfo" class="form-control" />
+        </div>
+       @* <div class="col-md-6">
+            <label for="inputPassword4" class="form-label">Cash Purchase No</label>
+            <InputText @bind-Value="expense.AdvancePurchaseNo" class="form-control" />
+        </div>*@
+        <div class="col-md-8">
+            <label class="col-form-label">Purchase Description</label>
+            <InputText  @bind-Value="objPurchase.ItemDescrition" class="form-control" />
+        </div>
+        <div class="col-md-12">
+            <label class="col-form-label">Supplier Pay To</label>
+            <InputText @bind-Value="objSupplier.SupplierName" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label class="col-form-label">Particulars</label>
+            <InputText @bind-Value="eDetail.Particulars" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label class="col-form-label">Qty</label>
+            <InputNumber @bind-Value="eDetail.Quantity" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label class="col-form-label">Unit</label>
+            <InputNumber @bind-Value="eDetail.Unit" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label class="col-form-label">Rate</label>
+            <InputNumber @bind-Value="eDetail.Rate" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label class="col-form-label">Total</label>
+            <InputNumber @bind-Value="eDetail.TotalAmount" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <input type="button" class="btn btn-primary btn-lg" value="Add" @onclick="(()=> Adddetails(eDetail))">Add</input>
+        </div>
+        <div class="col-md-12">
+        <table class="table table-striped table-bordered bg-light">
+            <thead>
+                <tr>
+                        <th>
+                            Particulars
+                        </th>
+                    <th>
+                            Unit
+                    </th>
+
+                    <th>
+                            Rate
+                    </th>
+
+                    <th>
+                            Quantity
+                    </th>
+                    <th>
+                            TotalAmount
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var usr in expense.TblExpenseDetails)
+                {
+                    <tr>
+                        <td>@usr.Particulars</td>
+                        <td>@usr.Quantity</td>
+                        <td>@usr.Unit</td>
+                        <td>@usr.Rate</td>
+                        <td>@usr.TotalAmount</td>
+                        <td>
+                                <button type="button" class="btn btn-secondary">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+    @*    <div class="col-md-12">
+                <label for="inputAddress" class="form-label">Advance Pay To</label>
+                <select class="form-select" value="@expense.PersonId" bind="@expense.PersonId" >
+                  @if (employeelist != null)
+                    {
+                @foreach (var city in employeelist)
+                        {
+                            <option value="@city.Id">@city.EmployeeName</option>
+                        }
+                    }
+                </select>
+          
+        </div>*@
+        <div class="col-md-6">
+            <label class="form-label">Supplier Bill No</label>
+            <InputText @bind-Value="expense.PurchaseOrderNo" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label  class="form-label">Bill Date</label>
+            <InputDate @bind-Value="expense.SupplierBillDate" class="form-control"></InputDate>
+        </div>
+        <div class="col-md-1">
+            Phase No
+        </div>
+            <div class="col-md-2">
+            <InputNumber @bind-Value="expense.PaymentPhase"></InputNumber>
+        </div>
+        <div class="col-md-3">
+            <label>Is Final</label>
+            <InputCheckbox @bind-Value="expense.IsFinalPayment"></InputCheckbox>
+        </div>
+        <div class="col-md-3">
+            <label>Cheque </label>
+            <InputCheckbox @bind-Value="expense.IsCashCheque"></InputCheckbox>
+        </div>
+        <div class="col-md-3">
+            <label>Cheque Cleared</label>
+            <InputCheckbox @bind-Value="expense.ChequeCleared"></InputCheckbox>
+        </div>
+        <div class="col-md-3">
+            <label>Cheque No </label>
+            </div>
+            <div class="col-md-3">
+            <InputText @bind-Value="expense.ChequeNo"></InputText>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Cheque Date</label>
+            </div>
+            <div class="col-md-3">
+            <InputDate @bind-Value="expense.ChequeDate" class="form-control"></InputDate>
+        </div>
+        <div class="col-md-3">
+            <label  class="form-label">Is Online</label>
+            <InputCheckbox @bind-Value="expense.IsOnlineBanking"></InputCheckbox>
+        </div>
+        <div class="col-md-3">
+            <label  class="form-label">Cash </label>
+            <InputCheckbox @bind-Value="expense.IsCashCheque"></InputCheckbox>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Booking Number</label>
+            <InputNumber @bind-Value="expense.OnlineBankingNumber"></InputNumber>
+        </div>
+        <div class="col-md-1">
+            <label>AccName</label>
+        </div>
+         <div class="col-md-2">
+            <select class="form-select" value="@expense.BankAccountId" bind="@expense.BankAccountId">
+                @if (AccountNamelist != null)
+                {
+                    @foreach (var cln in AccountNamelist)
+                    {
+                        <option value="@cln.Id">@cln.AccountName</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-1">
+            <label>Amount</label>
+        </div>
+        <div class="col-md-1">
+            <InputNumber @bind-Value="expense.Amount"></InputNumber>
+        </div>
+        <div class="col-md-2">
+          
+        </div>
+        <div class="col-md-2">
+            <label>Received Date</label>
+        </div>
+        <div class="col-md-2">
+            <InputDate @bind-Value="expense.ReceiveDate"></InputDate>
+        </div>
+        <div class="col-md-2">
+           
+        </div>
+        <div class="col-6">
+            <input type="button" class="btn btn-primary" value="Save" @onclick="(()=> AddNew(expense))">Save</input>
+            <input type="button" class="btn btn-success" value="Update" @onclick="(()=> Update(expense))">Update</input>
+            <input type="button" class="btn btn-danger" value="Delete" @onclick="(()=> Delete(expense))">Delete</input>
+            <button type="button" class="btn btn-secondary">Close</button>
+        </div>
+    </EditForm>
+</div>
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+    public TblExpense expense = new TblExpense();
+    public TblSaleOrder objSale = new TblSaleOrder();
+    public TblPurchaseOrder objPurchase = new TblPurchaseOrder();
+    bool Supp = false;
+    public TblExpenseDetail eDetail = new TblExpenseDetail();
+    private List<TblExpenseDetail> Detailslist = new List<TblExpenseDetail>();
+    private List<TblExpense> userlist = new List<TblExpense>();
+
+    private List<TblOfficeExpenceHead> officeHead = new List<TblOfficeExpenceHead>();
+    private List<TblBankAccountOwner> AccountNamelist = new List<TblBankAccountOwner>();
+
+    private List<TblEmployee> employeelist = new List<TblEmployee>();
+    public TblSupplier objSupplier = new TblSupplier();
+    private DateTime Dt;
+    bool UpdatedisableState;
+    bool SavedisableState;
+    string SessionPurchaseNo = "";
+    protected override async Task OnInitializedAsync()
+    {
+        //await GetUsers();
+        if (Id != null)
+        { await GetUserInfosById(Id); }
+
+        else
+        { 
+            //UpdatedisableState = true; SavedisableState = false;
+
+        }
+
+        SessionPurchaseNo = await olcalStorage.GetItemAsync<string>("purchaseOrderno");
+        //SavedisableState = true; UpdatedisableState = false;
+
+        //await GetUserRoles();
+        //Dt = DateTime.Now;
+
+        //expense.IsCashCheque = false;
+        //expense.IsDueAdvance = false;
+        //expense.ChequeCleared = false;
+        //expense.IsFinalPayment = false;
+        //expense.IsOnlineBanking = false;
+
+        //expense.ReceiveDate = DateTime.Now;
+        //expense.ChequeDate = DateTime.Now;
+        //expense.SupplierBillDate = DateTime.Now;
+        await GetBankAccountOwner();
+        await GetOfficeHead();
+        await GetEmployee();
+
+        this.StateHasChanged();
+
+
+    }
+    //private async Task GetUsers()
+    //{
+    //    //userlist = await UserService.;
+    //}
+    //private async Task GetInfo()
+    //{
+    //    userlist = await UserService.GetExpense();
+    //}
+
+    private async Task GetOfficeHead()
+    {
+        TblOfficeExpenceHead objRole = new TblOfficeExpenceHead();
+        objRole.Id = 0;
+        objRole.Name = "Select Head";
+
+        officeHead = await OfficeHeadService.GetOfficeHead();
+        officeHead.Add(objRole);
+        officeHead.Reverse();
+    }
+    private async Task GetEmployee()
+    {
+        TblEmployee objRole = new TblEmployee();
+        objRole.Id = 0;
+        objRole.EmployeeName = "Select Employee Name";
+
+        employeelist = await employeeService.GetEmployees();
+        employeelist.Add(objRole);
+        employeelist.Reverse();
+    }
+    private async Task GetBankAccountOwner()
+    {
+        TblBankAccountOwner objRole = new TblBankAccountOwner();
+        objRole.Id = 0;
+        objRole.AccountName = "Select Account";
+
+        AccountNamelist = await BankAccountOwner.GetBankAccountOwner();
+        AccountNamelist.Add(objRole);
+        AccountNamelist.Reverse();
+    }
+    private async Task GetUserInfosById(string Id)
+    {
+        int ID;
+        ID = Convert.ToInt32(Id);
+        expense = await UserService.GetExpenceById(ID);
+
+        this.StateHasChanged();
+    }
+    public async void AddNew(TblExpense expense)
+    {
+        try
+        {
+            expense.TypeOfExpense = 1;
+            expense.IsCashCheque = true;
+            expense.IsDueAdvance = true;
+            expense.IsFinalPayment = false;
+            expense.IsOnlineBanking = false;
+            expense.ChequeCleared = false;
+            expense.Approved = false;
+            expense.AdvancePurchaseNo = null;
+            expense.OfficeExpenseId = 0;
+            
+            expense.PaymentPhase = 1;
+            expense.PersonId = 17;
+            expense.PurchaseOrderId = 2612;
+            expense.SalesOrderId = 552;
+            expense.BankAccountId = 15;
+
+            expense.VoucherNumber = "585858";
+            expense.SupplierBillNo = "585858";
+
+            //expense.TblExpenseDetails = Detailslist;
+            var response = await UserService.AddExpence(expense);
+            if (response != null)
+            {
+                //await GetUsers();
+                this.StateHasChanged();
+                await Alert("Employee Added Successfully");
+            }
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+        
+    }
+    public async void Adddetails(TblExpenseDetail Detail)
+    {
+
+        TblExpenseDetail obj = new TblExpenseDetail();
+        obj.Particulars = Detail.Particulars;
+        obj.Quantity = Detail.Quantity;
+        obj.Unit = Detail.Unit;
+        obj.Rate = Detail.Rate;
+        obj.TotalAmount = Detail.TotalAmount;
+
+        Detailslist.Add(obj);
+        expense.TblExpenseDetails = Detailslist;
+
+
+        //expense.TblExpenseDetails.Add(Detail);
+        //var response = await UserService.AddExpence(Detail);
+        //if (response != null)
+        //{
+        //    //await GetUsers();
+
+        //    this.StateHasChanged();
+        //    await Alert("Employee Added Successfully");
+        //}
+    }
+
+    public async void Update(TblExpense User)
+    {
+        var response = await UserService.UpdateExpence(User);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            this.StateHasChanged();
+            await Alert("Em[ployee Update Successfully");
+        }
+    }
+    public async void Delete(TblExpense User)
+    {
+        //int UserId = Convert.ToInt32(User.Id);
+        var response = await UserService.DeleteExpence(User);
+        if (response != null)
+        {
+            //await GetUsers();
+
+            //this.StateHasChanged();
+            await Alert("Employee Delete Successfully");
+        }
+
+    }
+    private async Task Alert(string Message)
+    {
+        await JSRuntime.InvokeAsync<object>("Alert", Message);
+        NavigationManager.NavigateTo("UserInfos");
+    }
+    protected async void Salees_Change(ChangeEventArgs evt)
+    {
+        string SaleOrderNo = evt.Value.ToString();
+
+    }
+    //protected async void ddlUser_Onchange(ChangeEventArgs evt)
+    //{
+    //    string cityName = evt.Value.ToString();
+    //    //this.StateHasChanged();
+
+    //    User.UserRoleId = Convert.ToInt32(evt.Value);
+    //}
+
+    protected async void GetPurInfo(ChangeEventArgs evt)
+    {
+        
+    }
+    protected async void Puchase_Change(ChangeEventArgs evt)
+    {
+
+    }
+    
+    protected async void GetSalesInfo(ChangeEventArgs evt)
+    {
+
+        string SaleOrderNo = evt.Value.ToString();
+        //expense.SalesOrderNo = SaleOrderNo;
+        //objSale.SalesOrderNo = SaleOrderNo;
+        objSale = await SaleService.GetSalesBySalesCode(SaleOrderNo);
+        string PlaceofWork = objSale.PlaceofWork;
+        this.StateHasChanged();
+
+    }
+    protected async void GetpurchaseInfo(ChangeEventArgs evt)
+    {
+        //if ()
+        string PurchaseOrderNo = evt.Value.ToString();
+        SessionPurchaseNo = evt.Value.ToString();
+        expense.PurchaseOrderNo = PurchaseOrderNo;
+
+        await olcalStorage.SetItemAsync("purchaseOrderno", SessionPurchaseNo);
+        objPurchase = await PurchaseService.GetpurchaseByCode(SessionPurchaseNo);
+        int SupId = Convert.ToInt32(objPurchase.SupplierId);
+        objSupplier = await SupplierService.GetSupplierById(SupId);
+
+        
+        string ItemDescrition = objPurchase.ItemDescrition;
+        this.StateHasChanged();
+
+    }
+    protected async void GetInfo(ChangeEventArgs evt)
+    {
+        string SaleOrderNo = evt.Value.ToString();
+        var sal = SaleService.GetSalesBySalesCode(SaleOrderNo);
+    }
+    
+}
